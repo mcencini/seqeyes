@@ -11,13 +11,13 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>SeqEyes</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="minimumSize">
     <size>
-     <width>800</width>
-     <height>600</height>
+     <width>0</width>
+     <height>0</height>
     </size>
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout">
@@ -60,6 +60,7 @@
     </property>
     <addaction name="actionColorSettings"/>
     <addaction name="actionResetView"/>
+    <addaction name="actionShowFullDetail"/>
    </widget>
    <widget class="QMenu" name="menuAnalysis">
     <property name="title">
@@ -71,6 +72,7 @@
      <string>Help</string>
     </property>
     <addaction name="actionAbout"/>
+    <addaction name="actionUsage"/>
     <addaction name="actionContact"/>
    </widget>
    <addaction name="menuFile"/>
@@ -82,7 +84,7 @@
    <property name="minimumSize">
     <size>
      <width>0</width>
-     <height>25</height>
+     <height>0</height>
     </size>
    </property>
   </widget>
@@ -100,6 +102,7 @@
    <addaction name="actionReopen"/>
    <addaction name="actionCloseFile"/>
    <addaction name="actionResetView"/>
+   <addaction name="actionMeasureDt"/>
   </widget>
   <action name="actionOpen">
    <property name="icon">
@@ -165,12 +168,42 @@
     <string>About</string>
    </property>
   </action>
+  <action name="actionUsage">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::HelpContents"/>
+   </property>
+   <property name="text">
+    <string>Usage</string>
+   </property>
+   <property name="shortcut">
+    <string>F1</string>
+   </property>
+  </action>
   <action name="actionResetView">
    <property name="icon">
     <iconset theme="QIcon::ThemeIcon::ViewRestore"/>
    </property>
    <property name="text">
     <string>Reset View</string>
+   </property>
+  </action>
+  <action name="actionMeasureDt">
+   <property name="text">
+    <string>Measure Δt</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle Δt measurement mode</string>
+   </property>
+  </action>
+  <action name="actionShowFullDetail">
+   <property name="text">
+    <string>Show Full Detail</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle between downsampled and full detail rendering</string>
+   </property>
+   <property name="checkable">
+    <bool>true</bool>
    </property>
   </action>
  </widget>

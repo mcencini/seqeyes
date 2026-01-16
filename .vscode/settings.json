@@ -1,0 +1,108 @@
+{
+    "terminal.integrated.profiles.linux": {
+
+        "bash": {
+            "path": "bash",
+            "icon": "terminal-bash"
+        },
+        "zsh": {
+            "path": "zsh"
+        },
+        "fish": {
+            "path": "fish"
+        },
+        "tmux": {
+            "path": "tmux",
+            "icon": "terminal-tmux"
+        },
+        "pwsh": {
+            "path": "pwsh",
+            "icon": "terminal-powershell"
+        }
+    },
+"terminal.integrated.profiles.windows": {
+    "Developer Command Prompt": {
+    "path": ["${env:windir}\\Sysnative\\cmd.exe", "${env:windir}\\System32\\cmd.exe"],
+            "args": ["/k", "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\Common7\\Tools\\VsDevCmd.bat","-arch=x64"],
+        
+            }
+},
+"terminal.integrated.defaultProfile.windows": "Developer Command Prompt",
+"files.associations": {
+    "xstring": "cpp",
+    "complex": "cpp",
+    "format": "cpp",
+    "array": "cpp",
+    "forward_list": "cpp",
+    "list": "cpp",
+    "vector": "cpp",
+    "xhash": "cpp",
+    "xlocinfo": "cpp",
+    "xtree": "cpp",
+    "xutility": "cpp",
+    "utility": "cpp",
+    "limits": "cpp",
+    "iostream": "cpp",
+    "atomic": "cpp",
+    "memory": "cpp",
+    "cstdlib": "cpp",
+    "xiosbase": "cpp",
+    "algorithm": "cpp",
+    "bit": "cpp",
+    "cctype": "cpp",
+    "charconv": "cpp",
+    "chrono": "cpp",
+    "clocale": "cpp",
+    "cmath": "cpp",
+    "compare": "cpp",
+    "concepts": "cpp",
+    "cstddef": "cpp",
+    "cstdint": "cpp",
+    "cstdio": "cpp",
+    "cstring": "cpp",
+    "ctime": "cpp",
+    "cwchar": "cpp",
+    "exception": "cpp",
+    "fstream": "cpp",
+    "functional": "cpp",
+    "initializer_list": "cpp",
+    "iomanip": "cpp",
+    "ios": "cpp",
+    "iosfwd": "cpp",
+    "istream": "cpp",
+    "iterator": "cpp",
+    "locale": "cpp",
+    "map": "cpp",
+    "mutex": "cpp",
+    "new": "cpp",
+    "numeric": "cpp",
+    "optional": "cpp",
+    "ostream": "cpp",
+    "ratio": "cpp",
+    "set": "cpp",
+    "sstream": "cpp",
+    "stdexcept": "cpp",
+    "stop_token": "cpp",
+    "streambuf": "cpp",
+    "string": "cpp",
+    "system_error": "cpp",
+    "thread": "cpp",
+    "tuple": "cpp",
+    "type_traits": "cpp",
+    "typeinfo": "cpp",
+    "unordered_map": "cpp",
+    "xfacet": "cpp",
+    "xlocale": "cpp",
+    "xlocbuf": "cpp",
+    "xlocmes": "cpp",
+    "xlocmon": "cpp",
+    "xlocnum": "cpp",
+    "xloctime": "cpp",
+    "xmemory": "cpp",
+    "xstddef": "cpp",
+    "xtr1common": "cpp"
+}
+
+
+
+}
