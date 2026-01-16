@@ -1,4 +1,5 @@
 # SeqEyes
+Compiled windows exe can be found at https://drive.google.com/drive/folders/1J1ILayzNA9qtO6tjJwZsqCnctTrbWDHw?usp=sharing
 
 Display Pulseq sequence diagram and k-space trajectory, modified from [PulseqViewer](https://github.com/xpjiang/PulseqViewer)
 
