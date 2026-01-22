@@ -109,6 +109,7 @@ static void registerOptions(QCommandLineParser& parser, bool includeBuiltInHelpV
 
     // Window/control
     parser.addOption(QCommandLineOption("maximized", "Start maximized"));
+    parser.addOption(QCommandLineOption(QStringList() << "name", "Set window title to the specified name", "title"));
 
     // Visibility toggles
     parser.addOption(QCommandLineOption("no-ADC", "Hide ADC/labels axis"));

@@ -234,9 +234,18 @@ MainWindow::MainWindow(QWidget* parent)
 void MainWindow::setLoadedFileTitle(const QString& filePath)
 {
     m_loadedSeqFilePath = filePath;
-    QFileInfo fi(filePath);
     const QString base = "SeqEyes";
-    const QString name = fi.fileName();
+    QString name;
+    if (!m_customWindowTitle.isEmpty())
+    {
+        // Use custom title instead of file name
+        name = m_customWindowTitle;
+    }
+    else
+    {
+        QFileInfo fi(filePath);
+        name = fi.fileName();
+    }
     if (name.isEmpty())
     {
         setWindowTitle(base);
@@ -248,7 +257,15 @@ void MainWindow::setLoadedFileTitle(const QString& filePath)
 void MainWindow::clearLoadedFileTitle()
 {
     m_loadedSeqFilePath.clear();
-    setWindowTitle("SeqEyes");
+    // If custom title is set, use it; otherwise use default
+    if (!m_customWindowTitle.isEmpty())
+    {
+        setWindowTitle(m_customWindowTitle);
+    }
+    else
+    {
+        setWindowTitle("SeqEyes");
+    }
 }
 
 MainWindow::~MainWindow()
@@ -1797,6 +1814,21 @@ void MainWindow::openFileFromCommandLine(const QString& filePath)
 
 void MainWindow::applyCommandLineOptions(const QCommandLineParser& parser)
 {
+    // Custom window title
+    if (parser.isSet("name"))
+    {
+        m_customWindowTitle = parser.value("name");
+        // Update window title immediately if a file is already loaded
+        if (!m_loadedSeqFilePath.isEmpty())
+        {
+            setLoadedFileTitle(m_loadedSeqFilePath);
+        }
+        else
+        {
+            setWindowTitle(m_customWindowTitle);
+        }
+    }
+
     // Axis visibility
     if (m_trManager && m_waveformDrawer)
     {

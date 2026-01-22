@@ -211,6 +211,7 @@ private:
     bool m_trajectoryRangeInitialized {false};
 
     QString m_loadedSeqFilePath;
+    QString m_customWindowTitle; // Custom window title set via --name option
 };
 
 #endif // MAINWINDOW_H
