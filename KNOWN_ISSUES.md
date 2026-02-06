@@ -1,0 +1,17 @@
+# Known Issues
+
+## RF/ADC phases not accurate
+
+- **Issue**: RF and ADC phases displayed in the waveform diagram is not accurate.
+- **Workaround**: None currently available. Please verify phase information using other tools.
+
+## Wrong redering on Linux
+
+- **Issue**: Waveforms in diferent blocks may shown as connected.
+- **Workaround**: Zoom in to see the waveforms correctly rendered.
+
+## UI lag with large sequences
+- **Issue**: The user interface may become laggy or even freeze when loading or displaying large sequences.
+- **Workaround**: Try to make the sequence smaller by reducing:
+  - Number of slices, number of repetitions, number of diffusion directions, etc. 
+  - Use the TR-segmented render mode instead of rendering the entire sequence, this will need the TR or RepetitionTime definition in the .seq file.
