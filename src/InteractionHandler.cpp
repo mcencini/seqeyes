@@ -1206,22 +1206,15 @@ bool InteractionHandler::eventFilter(QObject* obj, QEvent* event)
         }
 
         // 1) TR stepping (global, independent of focus)
-        //    Alt+Q: increase TR start/end by |Inc| (default 1 if Inc empty or 0)
-        //    Alt+W: decrease TR start/end by |Inc| (default 1 if Inc empty or 0)
-        //    Ctrl+Right: increase TR start/end by |Inc| (same as Alt+Q, fallback)
-        //    Ctrl+Left:  decrease TR start/end by |Inc| (same as Alt+W)
+        //    Alt+Q: decrease TR start/end by |Inc| (default 1 if Inc empty or 0)
+        //    Alt+W: increase TR start/end by |Inc| (default 1 if Inc empty or 0)
         bool trStepShortcut = false;
         int  trStepSign = 0; // +1 or -1
 
         if ((mods & Qt::AltModifier) && (ke->key() == Qt::Key_Q || ke->key() == Qt::Key_W))
         {
             trStepShortcut = true;
-            trStepSign = (ke->key() == Qt::Key_Q) ? +1 : -1;
-        }
-        else if ((mods & Qt::ControlModifier) && (ke->key() == Qt::Key_Right || ke->key() == Qt::Key_Left))
-        {
-            trStepShortcut = true;
-            trStepSign = (ke->key() == Qt::Key_Right) ? +1 : -1;
+            trStepSign = (ke->key() == Qt::Key_Q) ? -1 : +1;
         }
 
         if (trStepShortcut && trStepSign != 0)
@@ -1281,9 +1274,25 @@ bool InteractionHandler::eventFilter(QObject* obj, QEvent* event)
         }
 
         // 2) Time window stepping (global, independent of focus)
-        //    Alt+E: increase Time start/end by |Inc| (ms). If Inc empty/0, use ~10% of current window.
-        //    Alt+R: decrease Time start/end by |Inc|.
+        //    Alt+E: decrease Time start/end by |Inc| (ms). If Inc empty/0, use ~10% of current window.
+        //    Alt+R: increase Time start/end by |Inc|.
+        //    Ctrl+Left:  decrease Time start/end by |Inc| (same as Alt+E, fallback)
+        //    Ctrl+Right: increase Time start/end by |Inc| (same as Alt+R)
+        bool timeStepShortcut = false;
+        double timeStepSign = 0.0; // +1.0 or -1.0
+
         if ((mods & Qt::AltModifier) && (ke->key() == Qt::Key_E || ke->key() == Qt::Key_R))
+        {
+            timeStepShortcut = true;
+            timeStepSign = (ke->key() == Qt::Key_E) ? -1.0 : +1.0;
+        }
+        else if ((mods & Qt::ControlModifier) && (ke->key() == Qt::Key_Left || ke->key() == Qt::Key_Right))
+        {
+            timeStepShortcut = true;
+            timeStepSign = (ke->key() == Qt::Key_Left) ? -1.0 : +1.0;
+        }
+
+        if (timeStepShortcut && timeStepSign != 0.0)
         {
             TRManager* trm = m_mainWindow->getTRManager();
             if (!trm)
@@ -1315,7 +1324,7 @@ bool InteractionHandler::eventFilter(QObject* obj, QEvent* event)
                 if (mag < 1.0) mag = 1.0;
             }
 
-            double inc = (ke->key() == Qt::Key_E ? +mag : -mag);
+            double inc = mag * timeStepSign;
 
             // Read current window
             bool okS = false, okE = false;

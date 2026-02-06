@@ -187,24 +187,24 @@ void SettingsDialog::setupUI()
         "  D / Right Arrow : Pan right<br>"
         "<br>"
         "<b>TR stepping</b><br>"
-        "  Alt+Q           : Increase TR start/end (step = |TR Inc|, default 1)<br>"
-        "  Alt+W           : Decrease TR start/end (step = |TR Inc|, default 1)<br>"
-        "  Ctrl+Right/Left : Same as Alt+Q / Alt+W<br>"
+        "  Alt+Q           : Decrease TR start/end (step = |TR Inc|, default 1)<br>"
+        "  Alt+W           : Increase TR start/end (step = |TR Inc|, default 1)<br>"
         "<br>"
         "<b>Time window</b><br>"
-        "  Alt+E           : Increase Time start/end (step = |Time Inc|, or ~10% of window)<br>"
-        "  Alt+R           : Decrease Time start/end (same step as Alt+E)");
+        "  Alt+E           : Decrease Time start/end (step = |Time Inc|, or ~10% of window)<br>"
+        "  Alt+R           : Increase Time start/end (same step as Alt+E)<br>"
+        "  Ctrl+Left/Right : Same as Alt+E / Alt+R");
     m_shortcutInfoLabel->setToolTip(
         "TR stepping:\n"
         "  • If TR Inc is empty or 0, the step size is 1 TR.\n"
         "  • If TR Inc = x ≠ 0, the step size is |x| TR:\n"
-        "      Alt+Q always moves forward (+|x|), Alt+W always moves backward (-|x|).\n"
-        "  • Ctrl+Right / Ctrl+Left are equivalent shortcuts to Alt+Q / Alt+W.\n"
+        "      Alt+Q always moves backward (-|x|), Alt+W always moves forward (+|x|).\n"
         "\n"
         "Time window stepping:\n"
         "  • If Time Inc is empty or 0, the step size is ~10% of the current Time window (at least 1 ms).\n"
         "  • If Time Inc = y ≠ 0, the step size is |y| ms:\n"
-        "      Alt+E always moves forward (+|y|), Alt+R always moves backward (-|y|).");
+        "      Alt+E always moves backward (-|y|), Alt+R always moves forward (+|y|).\n"
+        "  • Ctrl+Left / Ctrl+Right are equivalent shortcuts to Alt+E / Alt+R.");
 
     QWidget* kbWidget = new QWidget(interactionsTab);
     QVBoxLayout* kbLayout = new QVBoxLayout(kbWidget);
