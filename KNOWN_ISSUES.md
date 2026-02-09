@@ -5,7 +5,7 @@
 - **Issue**: RF and ADC phases displayed in the waveform diagram is not accurate.
 - **Workaround**: None currently available. Please verify phase information using other tools.
 
-## Wrong redering on Linux
+## Wrong rendering on Linux
 
 - **Issue**: Waveforms in diferent blocks may shown as connected.
 - **Workaround**: Zoom in to see the waveforms correctly rendered.
