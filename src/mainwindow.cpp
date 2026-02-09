@@ -236,16 +236,33 @@ void MainWindow::setLoadedFileTitle(const QString& filePath)
     m_loadedSeqFilePath = filePath;
     const QString base = "SeqEyes";
     QString name;
+    
+    // Priority 1: Command line --name option (highest priority)
     if (!m_customWindowTitle.isEmpty())
     {
-        // Use custom title instead of file name
         name = m_customWindowTitle;
     }
-    else
+    // Priority 2: Name from [DEFINITIONS] section in .seq file
+    else if (m_pulseqLoader)
+    {
+        auto seq = m_pulseqLoader->getSequence();
+        if (seq)
+        {
+            std::string nameDef = seq->GetDefinitionStr("Name");
+            if (!nameDef.empty())
+            {
+                name = QString::fromStdString(nameDef).trimmed();
+            }
+        }
+    }
+    
+    // Priority 3: File name (fallback)
+    if (name.isEmpty())
     {
         QFileInfo fi(filePath);
         name = fi.fileName();
     }
+    
     if (name.isEmpty())
     {
         setWindowTitle(base);
