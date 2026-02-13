@@ -629,6 +629,29 @@ void WaveformDrawer::finishAxisDragVisual()
     plot->replot(QCustomPlot::rpQueuedReplot);
 }
 
+void WaveformDrawer::rescaleTimeCachedState(double ratio)
+{
+    // Rescale initial viewport bounds
+    m_initialViewportLower *= ratio;
+    m_initialViewportUpper *= ratio;
+
+    // Rescale cached viewport state used by debounce / viewport-change detection
+    m_lastViewportLower *= ratio;
+    m_lastViewportUpper *= ratio;
+    m_pendingViewportStart *= ratio;
+    m_pendingViewportEnd *= ratio;
+
+    // Rescale all x-axis ranges so the same physical time span stays visible
+    QCustomPlot* customPlot = m_mainWindow->ui->customPlot;
+    if (!customPlot) return;
+    for (auto& rect : m_vecRects)
+    {
+        if (!rect) continue;
+        QCPRange r = rect->axis(QCPAxis::atBottom)->range();
+        rect->axis(QCPAxis::atBottom)->setRange(r.lower * ratio, r.upper * ratio);
+    }
+}
+
 void WaveformDrawer::loadUiConfig()
 {
     QString path = Settings::getInstance().getConfigDirPath() + "/ui_config.json";
@@ -1861,17 +1884,22 @@ void WaveformDrawer::ensureRenderedForCurrentViewport()
     }
 }
 
-// Simple LOD system - no complex precomputation needed
 void WaveformDrawer::updateAxisLabels()
 {
-    // Update axis labels based on current visibility
-    for (int i = 0; i < m_vecRects.size(); ++i) {
-        if (m_vecRects[i]) {
-            QString label = defaultLabelForRect(i);
-            m_vecRects[i]->axis(QCPAxis::atLeft)->setLabel(label);
-        }
-    }
+    // Update Y-axis labels using each rect's fixed identity (matching InitSequenceFigure).
+    // Do NOT use m_axesOrder indices — m_axesOrder is the visual order which differs
+    // from m_vecRects order when the user has reordered subplots.
+    Settings& settings = Settings::getInstance();
+    QString gradientUnit = settings.getGradientUnitString();
 
+    if (m_pADCLabelsRect)   m_pADCLabelsRect->axis(QCPAxis::atLeft)->setLabel("ADC/labels");
+    if (m_pRfMagRect)       m_pRfMagRect->axis(QCPAxis::atLeft)->setLabel("RF mag(Hz)");
+    if (m_pRfADCPhaseRect)  m_pRfADCPhaseRect->axis(QCPAxis::atLeft)->setLabel("RF/ADC ph(rad)");
+    if (m_pGxRect)          m_pGxRect->axis(QCPAxis::atLeft)->setLabel("GX (" + gradientUnit + ")");
+    if (m_pGyRect)          m_pGyRect->axis(QCPAxis::atLeft)->setLabel("GY (" + gradientUnit + ")");
+    if (m_pGzRect)          m_pGzRect->axis(QCPAxis::atLeft)->setLabel("GZ (" + gradientUnit + ")");
+
+    // Update x-axis label on the bottom-most visible rect
     if (m_mainWindow && m_mainWindow->ui && m_mainWindow->ui->customPlot) {
         QCustomPlot* plot = m_mainWindow->ui->customPlot;
         int rowCount = plot->plotLayout()->rowCount();

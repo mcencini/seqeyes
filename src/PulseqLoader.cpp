@@ -1446,6 +1446,67 @@ void PulseqLoader::updateTimeUnitFromSettings()
     }
 }
 
+void PulseqLoader::rescaleTimeUnit()
+{
+    // Lightweight time-unit change: rescale cached time-dependent data in-place
+    // instead of reloading the entire sequence file from disk.
+    double oldFactor = tFactor;
+    updateTimeUnitFromSettings();
+    double newFactor = tFactor;
+
+    if (oldFactor == newFactor) return; // no effective change
+    if (vecBlockEdges.empty()) return;  // no file loaded
+
+    double ratio = newFactor / oldFactor;
+
+    // Rescale block edges
+    for (auto& edge : vecBlockEdges)
+        edge *= ratio;
+
+    // Rescale pre-built ADC time series
+    for (auto& t : m_adcTime)
+        t *= ratio;
+
+    // Rescale TE overlay data (excitation/refocusing centers are in axis units)
+    m_teDurationAxis *= ratio;
+    for (auto& t : m_excitationCentersAxis)
+        t *= ratio;
+    for (auto& t : m_refocusingCentersAxis)
+        t *= ratio;
+
+    // Rescale waveform display
+    WaveformDrawer* drawer = m_mainWindow->getWaveformDrawer();
+    if (drawer)
+    {
+        // Rescale all time-dependent cached state (viewport ranges, debounce
+        // cache, initial view bounds) in one encapsulated call.
+        drawer->rescaleTimeCachedState(ratio);
+
+        // Update the x-axis label text (e.g. "Time (ms)" -> "Time (us)")
+        drawer->configureXAxisLabels();
+
+        // Redraw all waveforms with the new time scale
+        drawer->DrawRFWaveform();
+        drawer->DrawADCWaveform();
+        drawer->DrawGWaveform();
+        if (drawer->getShowBlockEdges()) drawer->DrawBlockEdges();
+
+        // Recompute and lock Y-axis ranges so they stay consistent
+        drawer->computeAndLockYAxisRanges();
+    }
+
+    // Update TR status display text
+    TRManager* trm = m_mainWindow->getTRManager();
+    if (trm) trm->updateTrStatusDisplay();
+
+    // Update trajectory if visible
+    if (m_mainWindow && m_mainWindow->isTrajectoryVisible())
+        m_mainWindow->refreshTrajectoryPlotData();
+
+    if (m_mainWindow && m_mainWindow->ui && m_mainWindow->ui->customPlot)
+        m_mainWindow->ui->customPlot->replot();
+}
+
 void PulseqLoader::saveLastOpenDirectory()
 {
     QSettings settings;

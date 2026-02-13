@@ -450,8 +450,30 @@ void MainWindow::setupSettingsMenu()
 
 void MainWindow::onTimeUnitChanged()
 {
-    if (m_pulseqLoader) {
-        m_pulseqLoader->ReOpenPulseqFile();
+    if (!m_pulseqLoader) return;
+
+    // Remember the current viewport range and tFactor before the reload.
+    double oldFactor = m_pulseqLoader->getTFactor();
+    QCPRange savedRange;
+    bool hasRange = false;
+    if (m_waveformDrawer && !m_waveformDrawer->getRects().isEmpty()
+        && m_waveformDrawer->getRects()[0])
+    {
+        savedRange = m_waveformDrawer->getRects()[0]->axis(QCPAxis::atBottom)->range();
+        hasRange = true;
+    }
+
+    m_pulseqLoader->ReOpenPulseqFile();
+
+    // Restore the viewport so the user keeps seeing the same physical time span
+    // (e.g. 0-200 ms → 0-200000 us).
+    if (hasRange && oldFactor != 0.0)
+    {
+        double newFactor = m_pulseqLoader->getTFactor();
+        double ratio = newFactor / oldFactor;
+        QCPRange newRange(savedRange.lower * ratio, savedRange.upper * ratio);
+        if (auto* ih = getInteractionHandler())
+            ih->synchronizeXAxes(newRange);
     }
 }
 

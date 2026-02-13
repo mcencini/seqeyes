@@ -94,6 +94,9 @@ public:
     void computeAndLockYAxisRanges();
     void unlockYAxisRanges() { m_lockYAxisRanges = false; }
 
+    // Rescale all time-dependent cached state by the given ratio (used by time unit changes).
+    void rescaleTimeCachedState(double ratio);
+
     // Simple two-level LOD system
     enum class LODLevel {
         DOWNSAMPLED,    // Default: LTTB downsampling for performance

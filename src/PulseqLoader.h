@@ -136,6 +136,8 @@ public slots:
     void OpenPulseqFile();
     void ReOpenPulseqFile();
     bool ClosePulseqFile();
+    // Lightweight time-unit rescaling (avoids full file reload)
+    void rescaleTimeUnit();
 
 private:
     struct LabelSnapshot
