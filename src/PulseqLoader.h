@@ -89,6 +89,13 @@ public:
     QPair<double,double> getRfGlobalRangeAmp();
     QPair<double,double> getRfGlobalRangePh();
 
+    // ADC phase on-demand rendering (MATLAB-matching formula)
+    void getAdcPhaseViewport(double visibleStart, double visibleEnd,
+                             QVector<double>& tOut, QVector<double>& vOut);
+
+    // B0 accessor (from sequence [DEFINITIONS])
+    double getB0Tesla() const { return m_b0Tesla; }
+
     // Phase 2: Gradient on-demand rendering API
     void getGradViewportDecimated(int channel, double visibleStart, double visibleEnd, int pixelWidth,
                                   QVector<double>& tOut, QVector<double>& vOut);
@@ -211,6 +218,9 @@ private:
     // Test/CLI behavior
     bool m_silentMode {false};
 
+    // B0 field strength from [DEFINITIONS] (Tesla); needed for PPM phase terms
+    double m_b0Tesla {0.0};
+
     // Echo-time / excitation overlay cache
     bool m_supportsRfUseMetadata {false};
     bool m_hasEchoTimeDefinition {false};
@@ -246,6 +256,7 @@ private:
         int length {0};
         double phMin {0.0};
         double phMax {0.0};
+        bool isRealLike {false};
     };
     QHash<QString, RFAmpEntry> m_rfAmpCache; // rfA:<magShapeId>:<timeShapeId>#<len>
     QHash<QString, RFPhEntry>  m_rfPhCache;  // rfP:<phaseShapeId>:<timeShapeId>#<len>

@@ -298,6 +298,15 @@ void WaveformDrawer::InitSequenceFigure()
         m_graphRFPh->setAntialiased(true);
         m_graphRFPh->setVisible(m_curveVisibility.value(2, true));
     }
+    // Added: ADC Phase (same rect as RF Phase: m_pRfADCPhaseRect)
+    m_graphADCPh = customPlot->addGraph(m_pRfADCPhaseRect->axis(QCPAxis::atBottom), m_pRfADCPhaseRect->axis(QCPAxis::atLeft));
+    if (m_graphADCPh)
+    {
+        m_graphADCPh->setLineStyle(QCPGraph::lsNone); // dots only
+        m_graphADCPh->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, Qt::blue, 3)); // small blue dots
+        m_graphADCPh->setAntialiased(true);
+        m_graphADCPh->setVisible(m_curveVisibility.value(2, true)); // controlled by RF Phase visibility checkbox
+    }
     // Gradients Gx/Gy/Gz (rects 3..5)
     m_graphGx = customPlot->addGraph(m_pGxRect->axis(QCPAxis::atBottom), m_pGxRect->axis(QCPAxis::atLeft));
     if (m_graphGx)
@@ -896,6 +905,14 @@ void WaveformDrawer::DrawRFWaveform(const double& dStartTime, double dEndTime)
         if (m_graphRFMag) { m_graphRFMag->setData(tAmp, vAmp); m_graphRFMag->setVisible(m_curveVisibility.value(1, true)); }
         if (m_graphRFPh)  { m_graphRFPh->setData(tPh, vPh);   m_graphRFPh->setVisible(m_curveVisibility.value(2, true)); }
 
+        // Added: ADC Phase
+        QVector<double> tAdcPh, vAdcPh;
+        loader->getAdcPhaseViewport(visibleStart, visibleEnd, tAdcPh, vAdcPh);
+        if (m_graphADCPh) {
+             m_graphADCPh->setData(tAdcPh, vAdcPh);
+             m_graphADCPh->setVisible(m_curveVisibility.value(2, true)); // controlled by RF Phase visibility checkbox
+        }
+
         if (!m_lockYAxisRanges)
         {
             auto upd = [](const QVector<double>& arr, double& mn, double& mx){ for (double v: arr){ if (std::isnan(v)) continue; if (v<mn) mn=v; if (v>mx) mx=v; } };
@@ -904,18 +921,30 @@ void WaveformDrawer::DrawRFWaveform(const double& dStartTime, double dEndTime)
             double minPh  = std::numeric_limits<double>::max();
             double maxPh  = -std::numeric_limits<double>::infinity();
             upd(vAmp, minMag, maxMag); upd(vPh, minPh, maxPh);
+            upd(vAdcPh, minPh, maxPh); // Include ADC phase in range computation
 
             if (maxMag >= minMag && m_vecRects.size() > 1 && m_vecRects[1]){
                 double pad = (maxMag - minMag) * 0.05; if (pad == 0) pad = 1.0;
                 m_vecRects[1]->axis(QCPAxis::atLeft)->setRange(minMag - pad, maxMag + pad);
             }
             if (maxPh >= minPh && m_vecRects.size() > 2 && m_vecRects[2]){
+                // Force full [-pi, pi] range coverage to ensure negative values are visible
+                double forceMin = -3.2; // slightly more than -pi
+                double forceMax = 3.2;  // slightly more than pi
+                if (minPh > forceMin) minPh = forceMin;
+                if (maxPh < forceMax) maxPh = forceMax;
+                
                 double pad = (maxPh - minPh) * 0.05; if (pad == 0) pad = 1.0;
                 m_vecRects[2]->axis(QCPAxis::atLeft)->setRange(minPh - pad, maxPh + pad);
             }
         } else {
             if (m_vecRects.size() > 1 && m_vecRects[1]) m_vecRects[1]->axis(QCPAxis::atLeft)->setRange(m_fixedYRanges[1].first, m_fixedYRanges[1].second);
             if (m_vecRects.size() > 2 && m_vecRects[2]) m_vecRects[2]->axis(QCPAxis::atLeft)->setRange(m_fixedYRanges[2].first, m_fixedYRanges[2].second);
+        }
+        
+        // DEBUG: Unconditionally force phase Y-axis range to [-3.5, 3.5] to reveal negative values
+        if (m_vecRects.size() > 2 && m_vecRects[2]) {
+             m_vecRects[2]->axis(QCPAxis::atLeft)->setRange(-3.5, 3.5);
         }
         return;
     }
