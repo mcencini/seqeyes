@@ -298,14 +298,25 @@ void WaveformDrawer::InitSequenceFigure()
         m_graphRFPh->setAntialiased(true);
         m_graphRFPh->setVisible(m_curveVisibility.value(2, true));
     }
-    // Added: ADC Phase (same rect as RF Phase: m_pRfADCPhaseRect)
+    // ADC Phase (same rect as RF Phase: m_pRfADCPhaseRect)
+    // PERF NOTE: Must use lsLine (not scatter ssDisc). QCustomPlot renders scatter dots
+    // individually (per-point QPainter::drawEllipse), while line segments are batched into
+    // a single QPainterPath — the difference is ~10x. Scatter caused severe UI lag on
+    // mouse move because every replot() had to re-render thousands of individual circles.
+    // NaN breaks in the data (inserted by getAdcPhaseViewport) prevent lines from connecting
+    // separate ADC blocks. MATLAB SeqPlot.m uses 'b.' MarkerSize=1 but that is acceptable
+    // in MATLAB's retained-mode renderer; QCustomPlot is immediate-mode and much slower.
     m_graphADCPh = customPlot->addGraph(m_pRfADCPhaseRect->axis(QCPAxis::atBottom), m_pRfADCPhaseRect->axis(QCPAxis::atLeft));
     if (m_graphADCPh)
     {
-        m_graphADCPh->setLineStyle(QCPGraph::lsNone); // dots only
-        m_graphADCPh->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, Qt::blue, 3)); // small blue dots
-        m_graphADCPh->setAntialiased(true);
-        m_graphADCPh->setVisible(m_curveVisibility.value(2, true)); // controlled by RF Phase visibility checkbox
+        QPen adcPhPen(Qt::blue);
+        adcPhPen.setWidthF(1.0);
+        m_graphADCPh->setPen(adcPhPen);
+        m_graphADCPh->setLineStyle(QCPGraph::lsLine);
+        m_graphADCPh->setScatterStyle(QCPScatterStyle::ssNone);
+        m_graphADCPh->setAntialiased(false);
+        m_graphADCPh->setAdaptiveSampling(true);
+        m_graphADCPh->setVisible(m_curveVisibility.value(2, true));
     }
     // Gradients Gx/Gy/Gz (rects 3..5)
     m_graphGx = customPlot->addGraph(m_pGxRect->axis(QCPAxis::atBottom), m_pGxRect->axis(QCPAxis::atLeft));
@@ -905,9 +916,14 @@ void WaveformDrawer::DrawRFWaveform(const double& dStartTime, double dEndTime)
         if (m_graphRFMag) { m_graphRFMag->setData(tAmp, vAmp); m_graphRFMag->setVisible(m_curveVisibility.value(1, true)); }
         if (m_graphRFPh)  { m_graphRFPh->setData(tPh, vPh);   m_graphRFPh->setVisible(m_curveVisibility.value(2, true)); }
 
-        // Added: ADC Phase
+        // Added: ADC Phase (pixel-aware decimation like RF)
         QVector<double> tAdcPh, vAdcPh;
-        loader->getAdcPhaseViewport(visibleStart, visibleEnd, tAdcPh, vAdcPh);
+        int pxADCPh = pxRFEffective; // reuse RF effective pixel width for phase rect
+        if (m_vecRects.size() > 2 && m_vecRects[2])
+            pxADCPh = qMax(1, static_cast<int>(qRound(m_vecRects[2]->width() * m_mainWindow->devicePixelRatioF())));
+        if (currentLODLevel != LODLevel::DOWNSAMPLED)
+            pxADCPh = qMax(pxADCPh, 100000); // full detail mode
+        loader->getAdcPhaseViewport(visibleStart, visibleEnd, pxADCPh, tAdcPh, vAdcPh);
         if (m_graphADCPh) {
              m_graphADCPh->setData(tAdcPh, vAdcPh);
              m_graphADCPh->setVisible(m_curveVisibility.value(2, true)); // controlled by RF Phase visibility checkbox

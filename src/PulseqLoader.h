@@ -92,8 +92,19 @@ public:
     QPair<double,double> getRfGlobalRangePh();
 
     // ADC phase on-demand rendering (MATLAB-matching formula)
-    void getAdcPhaseViewport(double visibleStart, double visibleEnd,
+    void getAdcPhaseViewport(double visibleStart, double visibleEnd, int pixelWidth,
                              QVector<double>& tOut, QVector<double>& vOut);
+
+    // ADC phase viewport cache (invalidated on sequence reload)
+    struct AdcPhaseCache {
+        double visibleStart {0.0};
+        double visibleEnd {0.0};
+        int pixelWidth {0};
+        QVector<double> tData;
+        QVector<double> vData;
+        bool valid {false};
+    };
+    mutable AdcPhaseCache m_adcPhaseCache;
 
     // B0 accessor (from sequence [DEFINITIONS])
     double getB0Tesla() const { return m_b0Tesla; }

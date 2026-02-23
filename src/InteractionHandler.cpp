@@ -219,7 +219,7 @@ void InteractionHandler::onMouseMove(QMouseEvent* event)
 
             // Status text is appended in the normal hover path for consistency.
 
-            m_mainWindow->ui->customPlot->replot();
+            m_mainWindow->ui->customPlot->replot(QCustomPlot::rpQueuedReplot);
         }
         // Continue to normal hover path so that status text appends Δt consistently
     }
@@ -395,7 +395,11 @@ void InteractionHandler::onMouseMove(QMouseEvent* event)
             }
         }
         m_mainWindow->getCoordLabel()->setText(coordText);
-		m_mainWindow->ui->customPlot->replot();
+        // PERF NOTE: Must use rpQueuedReplot, not replot(). Synchronous replot() blocks
+        // the UI thread for every mouse move event — when the plot contains many data points
+        // (e.g. ADC phase), this causes the red guide line to lag seconds behind the cursor.
+        // rpQueuedReplot coalesces rapid successive requests into a single actual repaint.
+		m_mainWindow->ui->customPlot->replot(QCustomPlot::rpQueuedReplot);
 	}
 
 	if (blockIdx < 0) return;

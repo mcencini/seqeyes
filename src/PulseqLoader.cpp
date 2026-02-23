@@ -138,6 +138,7 @@ void PulseqLoader::ClearPulseqCache()
     m_kTrajectoryZAdc.clear();
     m_kTimeAdcSec.clear();
     m_usedExtensions.clear();
+    m_adcPhaseCache.valid = false;
 
     if (m_mainWindow && m_mainWindow->getTRManager())
     {
@@ -2259,19 +2260,56 @@ QPair<double,double> PulseqLoader::getRfGlobalRangePh()
 
 // (removed getRfViewportRangeAmp; y-axis ranges are computed once at load time)
 
-void PulseqLoader::getAdcPhaseViewport(double visibleStart, double visibleEnd,
+// ADC Phase viewport rendering (MATLAB-matching formula: angle(exp(i*phase)*exp(i*2*pi*t*freq)))
+// Three optimization strategies to keep rendering fast:
+//   1. Pixel-aware decimation: stride through samples when points-per-pixel > 2
+//   2. Viewport caching: if visibleStart/visibleEnd/pixelWidth unchanged, return cached result
+//   3. NaN breaks between ADC blocks: enables lsLine rendering (10x faster than scatter dots)
+//      while preventing lines from connecting unrelated ADC events
+void PulseqLoader::getAdcPhaseViewport(double visibleStart, double visibleEnd, int pixelWidth,
                                        QVector<double>& tOut, QVector<double>& vOut)
 {
-    tOut.clear(); vOut.clear();
-    if (m_vecDecodeSeqBlocks.empty() || vecBlockEdges.isEmpty()) return;
+    // Viewport cache: return cached data if viewport/pixelWidth unchanged
+    if (m_adcPhaseCache.valid &&
+        m_adcPhaseCache.visibleStart == visibleStart &&
+        m_adcPhaseCache.visibleEnd == visibleEnd &&
+        m_adcPhaseCache.pixelWidth == pixelWidth)
+    {
+        tOut = m_adcPhaseCache.tData;
+        vOut = m_adcPhaseCache.vData;
+        return;
+    }
 
-    // Find visible block range (reuse logic or simple binary search)
-    // For simplicity, iterate all blocks if not optimized, but better to binary search edges
+    tOut.clear(); vOut.clear();
+    if (m_vecDecodeSeqBlocks.empty() || vecBlockEdges.isEmpty() || pixelWidth <= 0) return;
+
+    // Find visible block range via binary search
     auto itStart = std::lower_bound(vecBlockEdges.begin(), vecBlockEdges.end(), visibleStart);
     int startBlock = std::max(0, int(std::distance(vecBlockEdges.begin(), itStart)) - 1);
     
     double gamma = Settings::getInstance().getGamma();
 
+    // Count total visible ADC samples for global decimation gating (like RF approach)
+    long long totalAdcSamples = 0;
+    for (int i = startBlock; i < vecBlockEdges.size() - 1; ++i) {
+        if (vecBlockEdges[i] > visibleEnd) break;
+        SeqBlock* blk = m_vecDecodeSeqBlocks[i];
+        if (!blk || !blk->isADC()) continue;
+        totalAdcSamples += blk->GetADCEvent().numSamples;
+    }
+    if (totalAdcSamples == 0) return;
+
+    // Determine stride based on points-per-pixel (ppp), mirroring RF decimation logic
+    // For line plots, ~2 samples/pixel is sufficient
+    double pppTotal = double(totalAdcSamples) / double(pixelWidth);
+    int stride = 1;
+    if (pppTotal > 2.0) {
+        int targetPoints = pixelWidth * 2;
+        stride = std::max(1, static_cast<int>(std::ceil(double(totalAdcSamples) / double(targetPoints))));
+    }
+
+    // Emit points with computed stride, NaN-break between ADC blocks for line plot
+    bool emittedAny = false;
     for (int i = startBlock; i < vecBlockEdges.size() - 1; ++i) {
         double blockStart = vecBlockEdges[i];
         if (blockStart > visibleEnd) break;
@@ -2286,10 +2324,15 @@ void PulseqLoader::getAdcPhaseViewport(double visibleStart, double visibleEnd,
         
         double fullFreqOff = adc.freqOffset + adc.freqPPM * 1e-6 * gamma * m_b0Tesla;
         double fullPhaseOff = adc.phaseOffset + adc.phasePPM * 1e-6 * gamma * m_b0Tesla;
-        
-        double minAdcPh = 1e9, maxAdcPh = -1e9;
 
-        for (int k = 0; k < nSamples; ++k) {
+        // Insert NaN break before this block to separate from previous block's line
+        if (emittedAny) {
+            tOut.append(tOut.last());
+            vOut.append(std::numeric_limits<double>::quiet_NaN());
+        }
+
+        bool emittedInBlock = false;
+        for (int k = 0; k < nSamples; k += stride) {
             double t_local = delay + (k + 0.5) * dwell; // Center of dwell
             double t_offset_us = adc.delay + (k + 0.5) * (adc.dwellTime * 1e-3);
             double t_plot = vecBlockEdges[i] + t_offset_us * tFactor;
@@ -2302,16 +2345,18 @@ void PulseqLoader::getAdcPhaseViewport(double visibleStart, double visibleEnd,
             
             tOut.append(t_plot);
             vOut.append(wrapped);
-            
-            if (wrapped < minAdcPh) minAdcPh = wrapped;
-            if (wrapped > maxAdcPh) maxAdcPh = wrapped;
+            emittedInBlock = true;
         }
-        // static int dbgCountA = 0; if (dbgCountA++ < 20)
-        qDebug() << "ADC Block" << i << "Offset:" << fullPhaseOff << "Freq:" << fullFreqOff 
-                 << "MinPh:" << minAdcPh << "MaxPh:" << maxAdcPh;
-            
-
+        if (emittedInBlock) emittedAny = true;
     }
+
+    // Store in cache for next call
+    m_adcPhaseCache.visibleStart = visibleStart;
+    m_adcPhaseCache.visibleEnd = visibleEnd;
+    m_adcPhaseCache.pixelWidth = pixelWidth;
+    m_adcPhaseCache.tData = tOut;
+    m_adcPhaseCache.vData = vOut;
+    m_adcPhaseCache.valid = true;
 }
 
 void PulseqLoader::buildShapeScaleAggregates()
