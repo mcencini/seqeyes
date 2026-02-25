@@ -1,0 +1,29 @@
+[build-system]
+build-backend = "scikit_build_core.build"
+requires = [
+  "scikit-build-core>=0.9",
+  "pybind11>=2.12",
+  "setuptools",
+  "setuptools_scm[toml]",
+  "wheel",
+]
+
+[project]
+name = "seqeyes"
+dynamic = ["version"]
+description = "Python bindings for the SeqEyes Pulseq sequence reader"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = ["numpy"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.setuptools_scm]
+write_to = "python/seqeyes/_version.py"
+
+[tool.scikit-build]
+cmake.source-dir = "python"
+
+[tool.pytest.ini_options]
+testpaths = ["python/tests"]

@@ -35,3 +35,12 @@ build*/
 .vs
 /CMakePresets.json
 /CMakeUserPresets.json
+
+# Python
+*.egg-info/
+__pycache__/
+dist/
+*.so
+*.pyd
+.eggs/
+*.egg
