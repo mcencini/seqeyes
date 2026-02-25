@@ -38,6 +38,59 @@ C:\Qt\6.5.3\msvc2019_64\bin\windeployqt.exe .\seqeyes.exe
 
 **Note**: Please use the full path to run windeployqt.exe, as the system may have multiple versions of Qt installed.
 
+## Python Package
+
+SeqEyes also provides a Python package (`seqeyes`) that exposes the Pulseq reader as a native extension module built with [pybind11](https://pybind11.readthedocs.io). It has no Qt dependency — only NumPy is required at runtime.
+
+### Install
+
+```bash
+pip install seqeyes
+```
+
+Or install directly from the repository:
+
+```bash
+pip install .
+```
+
+Requirements: Python ≥ 3.9, NumPy, a C++17 compiler, and CMake ≥ 3.20.
+
+### Usage
+
+```python
+from seqeyes import Sequence, read_version
+
+# Read only the version header (fast, no full parse)
+major, minor = read_version("path/to/sequence.seq")
+print(f"Pulseq v{major}.{minor}")
+
+# Load a full sequence
+seq = Sequence("path/to/sequence.seq")
+print(f"{seq.num_blocks} blocks, version {seq.version}")
+print(seq.definitions)          # dict from [DEFINITIONS] section
+
+# Decode a block
+blk = seq.get_block(0)
+print(f"Duration: {blk.duration_us} µs")
+
+if blk.rf_amp is not None:      # RF event present
+    print("RF amplitude (Hz):", blk.rf_amp)
+
+if blk.gx_wave is not None:     # Gx gradient present
+    print("Gx waveform (Hz/m):", blk.gx_wave)
+
+if blk.adc_num_samples is not None:   # ADC event present
+    print(f"ADC: {blk.adc_num_samples} samples, dwell {blk.adc_dwell} ns")
+```
+
+### Run Tests
+
+```bash
+pip install ".[test]"
+pytest python/tests/
+```
+
 ## Known Issues
 
 Please see [KNOWN_ISSUES.md](KNOWN_ISSUES.md) for a list of known issues and limitations.
