@@ -5,16 +5,31 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
+from pathlib import Path
+
+_exe_name = "seqeyes.exe" if sys.platform == "win32" else "seqeyes"
+# Bundled binary installed by the Python wheel alongside this module.
+_BUNDLED_EXE = Path(__file__).parent / "bin" / _exe_name
 
 
 def _find_executable() -> str:
-    """Find the seqeyes executable on PATH."""
+    """Return the path to the seqeyes executable.
+
+    Checks (in order):
+    1. Bundled binary shipped inside this Python package (``seqeyes/bin/``).
+    2. ``seqeyes`` on the system ``PATH``.
+    """
+    if _BUNDLED_EXE.is_file():
+        return str(_BUNDLED_EXE)
+
     exe = shutil.which("seqeyes")
     if exe is None:
         raise FileNotFoundError(
-            "SeqEyes executable not found on PATH. "
-            "Please install SeqEyes or add it to your PATH."
+            "SeqEyes executable not found. "
+            "Install a binary wheel via 'pip install seqeyes', "
+            "or add seqeyes to your PATH."
         )
     return exe
 

@@ -22,11 +22,28 @@ def _popen_mock():
 # ---------------------------------------------------------------------------
 
 def test_seqeyes_raises_when_exe_not_found():
-    """FileNotFoundError when seqeyes is not on PATH."""
+    """FileNotFoundError when neither bundled binary nor PATH entry exists."""
     from seqeyes.viewer import seqeyes
-    with patch("shutil.which", return_value=None):
+    with patch("shutil.which", return_value=None), \
+         patch("pathlib.Path.is_file", return_value=False):
         with pytest.raises(FileNotFoundError, match="executable not found"):
             seqeyes("dummy.seq")
+
+
+def test_find_executable_prefers_bundled(tmp_path):
+    """_find_executable returns the bundled binary when it exists."""
+    import sys
+    from seqeyes import viewer
+    from seqeyes.viewer import _find_executable
+
+    _exe_name = "seqeyes.exe" if sys.platform == "win32" else "seqeyes"
+    fake_bin = tmp_path / _exe_name
+    fake_bin.touch()
+
+    with patch.object(viewer, "_BUNDLED_EXE", fake_bin):
+        result = _find_executable()
+
+    assert result == str(fake_bin)
 
 
 # ---------------------------------------------------------------------------
