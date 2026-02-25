@@ -1,7 +1,7 @@
 [build-system]
-build-backend = "scikit_build_core.build"
+build-backend = "setuptools.build_meta"
 requires = [
-  "scikit-build-core>=0.9",
+  "setuptools>=61",
   "setuptools_scm[toml]",
 ]
 
@@ -18,11 +18,13 @@ test = ["pytest"]
 
 [tool.setuptools_scm]
 write_to = "python/seqeyes/_version.py"
+fallback_version = "0.0.0"
 
-[tool.scikit-build]
-cmake.source-dir = "."
-cmake.args = ["-DSEQEYES_BUILD_TESTS=OFF"]
-wheel.packages = ["python/seqeyes"]
+[tool.setuptools.packages.find]
+where = ["python"]
+
+[tool.setuptools.package-data]
+seqeyes = ["bin/*", "py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["python/tests"]

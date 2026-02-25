@@ -43,7 +43,21 @@ jobs:
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
 
-      # ---- Build wheel ----
+      # ---- Build & install the seqeyes C++ binary into python/seqeyes/bin/ ----
+      - name: Configure (CMake)
+        run: >
+          cmake -S . -B _cmake_build
+          -DCMAKE_BUILD_TYPE=Release
+          -DSEQEYES_BUILD_TESTS=OFF
+          -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/python"
+
+      - name: Build (CMake)
+        run: cmake --build _cmake_build --config Release
+
+      - name: Install binary into package tree
+        run: cmake --install _cmake_build --config Release
+
+      # ---- Build Python wheel (pure setuptools, binary now present) ----
       - name: Build wheel
         run: |
           pip install build
