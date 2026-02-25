@@ -24,7 +24,11 @@ seqeyes(seq);
 - Use the python wrapper, install with `pip install seqeyes` and then:
 ```python
 import seqeyes
-seq = seqeyes.Sequence('path/to/sequence.seq')
+seqeyes.seqeyes('path/to/sequence.seq')
+```
+or
+```python
+seqeyes.seqeyes(seq)
 ```
 
 ## Build Instructions
