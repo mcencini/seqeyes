@@ -1,6 +1,5 @@
-"""SeqEyes Python package – Pulseq sequence viewer and reader."""
+"""SeqEyes Python package – Pulseq sequence viewer."""
 
-from .sequence import Sequence, Block, read_version
 from .viewer import seqeyes
 
-__all__ = ["seqeyes", "Sequence", "Block", "read_version"]
+__all__ = ["seqeyes"]
