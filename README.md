@@ -21,6 +21,15 @@ or
 ```matlab
 seqeyes(seq);
 ```
+- Use the python wrapper, install with `pip install seqeyes` and then:
+```python
+import seqeyes
+seqeyes.seqeyes('path/to/sequence.seq')
+```
+or
+```python
+seqeyes.seqeyes(seq)
+```
 
 ## Build Instructions
 Qt6 libraries and cmake are required to build the project.
@@ -41,6 +50,10 @@ C:\Qt\6.5.3\msvc2019_64\bin\windeployqt.exe .\seqeyes.exe
 ## Known Issues
 
 Please see [KNOWN_ISSUES.md](KNOWN_ISSUES.md) for a list of known issues and limitations.
+
+
+
+
 
 
 
