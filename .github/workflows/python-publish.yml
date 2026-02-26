@@ -43,6 +43,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           echo "DYLD_LIBRARY_PATH=${QT_ROOT_DIR}/lib:${DYLD_LIBRARY_PATH}" >> $GITHUB_ENV
+          echo "DYLD_FRAMEWORK_PATH=${QT_ROOT_DIR}/lib:${DYLD_FRAMEWORK_PATH}" >> $GITHUB_ENV
           echo "QT_PLUGIN_PATH=${QT_ROOT_DIR}/plugins:${QT_PLUGIN_PATH}" >> $GITHUB_ENV
 
       # ---- MSVC (Windows only) ----
